@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Initial Setup</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container mt-4">
+    <h1 class="mb-4">Complete your initial setup</h1>
+    <form action="/complete-setup" method="post">
+      <input type="hidden" name="auth0Id" value="<%= auth0Id %>">
+      <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" class="form-control" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Complete Setup</button>
+    </form>
+  </div>
+</body>
+</html>

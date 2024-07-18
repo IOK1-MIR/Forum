@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= post.title %></title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script>
+        async function handleVote(itemId, voteType) {
+            const response = await fetch('/votes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemId, voteType })
+            });
+            const result = await response.json();
+            document.getElementById(`upvotes-${itemId}`).innerText = result.upvotes;
+            document.getElementById(`downvotes-${itemId}`).innerText = result.downvotes;
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Mini Reddit</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile">Perfil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="card mb-3">
+            <div class="card-body">
+                <h2 class="card-title"><%= post.title %></h2>
+                <p class="card-text"><%= post.content %></p>
+                <p class="card-text small-text">Escrito por: <%= post.userId.name %> en <%= post.subreddit.name %></p>
+                <div class="d-flex">
+                    <button class="btn btn-success info-button" onclick="handleVote('<%= post._id %>', 'upvote')">Upvote <span id="upvotes-<%= post._id %>"><%= post.upvotes %></span></button>
+                    <button class="btn btn-danger info-button" onclick="handleVote('<%= post._id %>', 'downvote')">Downvote <span id="downvotes-<%= post._id %>"><%= post.downvotes %></span></button>
+                </div>
+            </div>
+        </div>
+
+        <h4>Agregar Comentario</h4>
+        <form action="/comments" method="POST">
+            <input type="hidden" name="postId" value="<%= post._id %>">
+            <div class="form-group">
+                <textarea class="form-control" name="content" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Publicar</button>
+        </form>
+
+        <h4 class="mt-4">Comentarios:</h4>
+        <% if (comments.length > 0) { %>
+            <% comments.forEach(comment => { %>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p><%= comment.content %></p>
+                        <p class="small-text">Escrito por: <%= comment.userId.name %></p>
+                        <div class="d-flex">
+                            <button class="btn btn-success info-button" onclick="handleVote('<%= comment._id %>', 'upvote')">Upvote <span id="upvotes-<%= comment._id %>"><%= comment.upvotes %></span></button>
+                            <button class="btn btn-danger info-button" onclick="handleVote('<%= comment._id %>', 'downvote')">Downvote <span id="downvotes-<%= comment._id %>"><%= comment.downvotes %></span></button>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p>No hay comentarios.</p>
+        <% } %>
+    </div>
+</body>
+</html>

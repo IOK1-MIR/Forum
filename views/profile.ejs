@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Mini Reddit</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css"> <!-- Añadido -->
+    <script>
+        async function handleVote(itemId, voteType) {
+            const response = await fetch('/votes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemId, voteType })
+            });
+            const result = await response.json();
+            document.getElementById(`upvotes-${itemId}`).innerText = 'Upvote ' + result.upvotes;
+            document.getElementById(`downvotes-${itemId}`).innerText = 'Downvote ' + result.downvotes;
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Mini Reddit</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile">Perfil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1 class="mb-4">Perfil de <%= user.name %></h1>
+
+        <div class="main-content">
+            <!-- Lista de subreddits suscritos -->
+            <div class="subreddit-list">
+                <h2>Subreddits Suscritos</h2>
+                <ul class="list-group mb-4">
+                    <% user.subscriptions.forEach(subreddit => { %>
+                        <li class="list-group-item">
+                            <a href="/subreddit/<%= subreddit._id %>"><%= subreddit.name %></a>
+                            <p class="small-text"><%= subreddit.description %></p>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
+
+            <div class="content-container">
+                <h2>Publicaciones:</h2>
+                <% if (posts.length > 0) { %>
+                    <% posts.forEach(post => { %>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <p class="small-text">Escrito en <%= post.subreddit.name %></p>
+                                <h4 class="card-title"><a href="/post/<%= post._id %>">
+                                    <%= post.title.length > 50 ? post.title.substring(0, 50) + '...' : post.title %>
+                                </a></h4>
+                                <p class="card-text"><%= post.content.substring(0, 100) %>...</p>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p>No has publicado nada aún.</p>
+                <% } %>
+
+                <h2>Tus comentarios</h2>
+                <% if (comments.length > 0) { %>
+                    <% comments.forEach(comment => { %>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <p class="card-text"><a href="/post/<%= comment.postId._id %>"><%= comment.content %></a></p>
+                                <p class="card-text"><small class="text-muted">Escrito en: <%= comment.postId.title %></small></p>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p>No has comentado nada aún.</p>
+                <% } %>
+        
+            </div>
+        </div>
+    </div>
+</body>
+</html>

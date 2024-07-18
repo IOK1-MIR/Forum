@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= subreddit.name %> - Mini Reddit</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Mini Reddit</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile">Perfil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <h1 class="mb-4"><%= subreddit.name %></h1>
+        <p class="mb-4"><%= subreddit.description %></p>
+
+        <!-- Botón de suscripción/desuscripción -->
+        <% if (user.subscriptions.includes(subreddit._id)) { %>
+            <button class="btn btn-danger mb-4" onclick="handleSubscription('<%= subreddit._id %>', 'unsubscribe')">Desuscribirse</button>
+        <% } else { %>
+            <button class="btn btn-primary mb-4" onclick="handleSubscription('<%= subreddit._id %>', 'subscribe')">Suscribirse</button>
+        <% } %>
+
+        <% if (posts.length > 0) { %>
+            <% posts.forEach(post => { %>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <p class="card-text small-text">Escrito por: <%= post.userId.name %></p>
+                        <h4 class="card-title"><a href="/post/<%= post._id %>">
+                            <%= post.title.length > 50 ? post.title.substring(0, 50) + '...' : post.title %>
+                        </a></h4>
+                        <p class="card-text"><%= post.content.substring(0, 100) %>...</p>
+                        <div class="d-flex">
+                            <button class="btn btn-success info-button" onclick="handleVote('<%= post._id %>', 'upvote')">Upvote <span id="upvotes-<%= post._id %>"><%= post.upvotes %></span></button>
+                            <button class="btn btn-danger info-button" onclick="handleVote('<%= post._id %>', 'downvote')">Downvote <span id="downvotes-<%= post._id %>"><%= post.downvotes %></span></button>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <p>No hay publicaciones en este subreddit</p>
+        <% } %>
+    </div>
+    <script>
+        async function handleVote(itemId, voteType) {
+            const response = await fetch('/votes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemId, voteType })
+            });
+            const result = await response.json();
+            document.getElementById(`upvotes-${itemId}`).innerText = result.upvotes;
+            document.getElementById(`downvotes-${itemId}`).innerText = result.downvotes;
+        }
+
+        async function handleSubscription(subredditId, action) {
+            const response = await fetch(`/${action}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ subredditId })
+            });
+            if (response.ok) {
+                location.reload();
+            } else {
+                console.error('Error:', await response.text());
+            }
+        }
+    </script>
+</body>
+</html>

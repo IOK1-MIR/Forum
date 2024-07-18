@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mini Reddit</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script>
+        async function handleVote(itemId, voteType) {
+            const response = await fetch('/votes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ itemId, voteType })
+            });
+            const result = await response.json();
+            document.getElementById(`upvotes-${itemId}`).innerText = 'Upvote ' + result.upvotes;
+            document.getElementById(`downvotes-${itemId}`).innerText = 'Downvote ' + result.downvotes;
+        }
+
+        function toggleCreateSubredditForm() {
+            const form = document.getElementById('createSubredditForm');
+            form.style.display = form.style.display === 'block' ? 'none' : 'block';
+        }
+    </script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="/">Mini Reddit</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/profile">Perfil</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/logout">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <div class="header-with-button">
+            <h1 class="mb-4">Mini Reddit</h1>
+            <div class="circle-button" onclick="toggleCreateSubredditForm()">+</div>
+        </div>
+
+        <div class="main-content">
+            <!-- Lista de subreddits -->
+            <div class="subreddit-list">
+                <h2>Subreddits</h2>
+                <ul class="list-group mb-4">
+                    <% subreddits.forEach(subreddit => { %>
+                        <li class="list-group-item">
+                            <a href="/subreddit/<%= subreddit._id %>"><%= subreddit.name %></a>
+                            <p class="small-text"><%= subreddit.description %></p>
+                        </li>
+                    <% }) %>
+                </ul>
+            </div>
+
+            <div class="content-container">
+                <!-- Formulario para crear un nuevo subreddit -->
+                <div id="createSubredditForm" class="mb-4">
+                    <h3>Crear Subreddit</h3>
+                    <form action="/subreddits" method="POST">
+                        <div class="form-group">
+                            <input type="text" name="name" class="form-control mb-2" placeholder="Nombre del Subreddit" required>
+                        </div>
+                        <div class="form-group">
+                            <textarea name="description" class="form-control mb-2" placeholder="Descripción del Subreddit" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Crear</button>
+                    </form>
+                </div>
+
+                <!-- Formulario para crear una nueva publicación -->
+                <div id="createPostForm">
+                    <h3>Crear Publicación</h3>
+                    <form action="/posts" method="POST" class="form-inline">
+                        <div class="form-group mb-2">
+                            <input type="text" name="title" class="form-control" placeholder="Título" required>
+                        </div>
+                        <div class="form-group mx-sm-3 mb-2">
+                            <textarea name="content" class="form-control" placeholder="Contenido" required></textarea>
+                        </div>
+                        <div class="form-group mx-sm-3 mb-2">
+                            <select name="subredditId" class="form-control" required>
+                                <% subreddits.forEach(subreddit => { %>
+                                    <option value="<%= subreddit._id %>"><%= subreddit.name %></option>
+                                <% }) %>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">Crear Publicación</button>
+                    </form>
+                </div>
+
+                <!-- Lista de publicaciones -->
+                <% if (previews && previews.length > 0) { %>
+                    <% previews.forEach(preview => { %>
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <p class="small-text">Escrito por: <%= preview.post.username %> en <%= preview.post.subreddit.name %></p>
+                                <h4 class="card-title"><a href="/post/<%= preview.post._id %>">
+                                    <%= preview.post.title.length > 50 ? preview.post.title.substring(0, 50) + '...' : preview.post.title %>
+                                </a></h4>
+                                <p class="card-text"><%= preview.post.content.substring(0, 100) %>...</p>
+                                <div class="d-flex justify-content-start">
+                                    <a class="btn btn-info info-button" href="/post/<%= preview.post._id %>#comments">Comments <%= preview.commentCount %></a>
+                                    <button class="btn btn-success info-button" id="upvotes-<%= preview.post._id %>" onclick="handleVote('<%= preview.post._id %>', 'upvote')">Upvote <%= preview.upvotes %></button>
+                                    <button class="btn btn-danger info-button" id="downvotes-<%= preview.post._id %>" onclick="handleVote('<%= preview.post._id %>', 'downvote')">Downvote <%= preview.downvotes %></button>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p>No hay publicaciones disponibles.</p>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
